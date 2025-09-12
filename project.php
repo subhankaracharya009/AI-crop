@@ -446,6 +446,122 @@
             color: #ccc;
         }
         
+        /* Popup Styles */
+        .popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .popup-overlay.active {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .auth-popup {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 450px;
+            padding: 30px;
+            position: relative;
+            transform: translateY(-50px);
+            transition: transform 0.3s ease;
+        }
+        
+        .popup-overlay.active .auth-popup {
+            transform: translateY(0);
+        }
+        
+        .close-popup {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: var(--text-light);
+            transition: color 0.3s;
+        }
+        
+        .close-popup:hover {
+            color: var(--text);
+        }
+        
+        .popup-title {
+            text-align: center;
+            margin-bottom: 25px;
+            color: var(--primary-dark);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text);
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+        
+        .form-submit {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .form-submit:hover {
+            background: var(--primary-dark);
+        }
+        
+        .form-footer {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-light);
+        }
+        
+        .form-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .form-footer a:hover {
+            text-decoration: underline;
+        }
+        
         /* Responsive Design */
         @media (max-width: 768px) {
             .header-content {
@@ -480,6 +596,12 @@
                 overflow-x: auto;
                 white-space: nowrap;
             }
+            
+            .auth-popup {
+                width: 90%;
+                margin: 0 20px;
+                padding: 20px;
+            }
         }
     </style>
 </head>
@@ -494,10 +616,9 @@
                 </div>
                 <nav>
                     <ul>
-                        <li><a href="#" data-translate="nav_dashboard">Dashboard</a></li>
-                        <li><a href="#" data-translate="nav_predictions">Predictions</a></li>
-                        <li><a href="#" data-translate="nav_recommendations">Recommendations</a></li>
-                        <li><a href="#" data-translate="nav_fields">Fields</a></li>
+                        
+                        <li><a href="prediction.php" data-translate="nav_predictions">Predictions</a></li>
+                        <li><a href="recommendation.php" data-translate="nav_recommendations">Recommendations</a></li>
                         <li><a href="#" data-translate="nav_history">History</a></li>
                     </ul>
                 </nav>
@@ -524,8 +645,12 @@
                         </div>
                     </div>
                     <div class="auth-buttons">
-                        <button class="btn btn-outline" data-translate="btn_signin">Sign In</button>
-                        <button class="btn btn-primary" data-translate="btn_register">Register</button>
+                        <button class="btn btn-outline" id="signin-btn" data-translate="btn_signin">Sign In</button>
+                        <button class="btn btn-primary" id="register-btn" data-translate="btn_register">Register</button>
+                    </div>
+                    <div class="user-status" id="user-status" style="display: none;">
+                        <span id="user-name"></span>
+                        <a href="logout.php" class="btn btn-outline">Logout</a>
                     </div>
                 </div>
             </div>
@@ -538,12 +663,54 @@
             <div class="hero-content">
                 <h2 data-translate="hero_title">Optimize Your Farm with AI-Powered Insights</h2>
                 <p data-translate="hero_description">AgriGrow AI uses historical data, weather patterns, and soil health metrics to predict crop yields and provide actionable recommendations for irrigation, fertilization, and pest control.</p>
-                <button class="btn btn-primary" data-translate="btn_getstarted">Get Started</button>
+                <button class="btn btn-primary" id="get-started-btn" data-translate="btn_getstarted">Get Started</button>
             </div>
         </div>
     </section>
 
-    
+    <!-- Dashboard Section -->
+    <section class="dashboard">
+        <div class="container">
+            <h2 class="section-title" data-translate="section_overview">Farm Overview</h2>
+            <div class="dashboard-cards">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-cloud-sun"></i>
+                        <span data-translate="card_weather">Weather Conditions</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="data-value">72°F</div>
+                        <div class="data-label" data-translate="label_temperature">Current Temperature</div>
+                        <p data-translate="weather_description">Partly cloudy with a 20% chance of rain in the next 24 hours.</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-vial"></i>
+                        <span data-translate="card_soil">Soil Health</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="data-value">6.8 pH</div>
+                        <div class="data-label" data-translate="label_nutrient">Optimal Nutrient Levels</div>
+                        <p data-translate="soil_description">Soil conditions are favorable for corn cultivation. Nitrogen levels slightly low.</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-tint"></i>
+                        <span data-translate="card_irrigation">Irrigation Status</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="data-value">65%</div>
+                        <div class="data-label" data-translate="label_moisture">Adequate Moisture</div>
+                        <p data-translate="irrigation_description">Next irrigation recommended in 48 hours based on weather forecast.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
     <!-- Prediction Section -->
     <section class="prediction">
@@ -724,6 +891,65 @@
         </div>
     </footer>
 
+   <!-- Sign In Popup -->
+<div class="popup-overlay" id="signin-popup">
+    <div class="auth-popup">
+        <span class="close-popup" id="close-signin-popup">&times;</span>
+        <h2 class="popup-title">Sign In</h2>
+        <form id="signin-form" method="POST">
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="signin-phone" name="phone" placeholder="Enter your phone number" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="signin-password" name="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="form-submit">Sign In</button>
+            <div class="form-footer">
+                Don't have an account? <a href="#" id="show-register">Register</a>
+            </div>
+            <div id="signin-message" style="margin-top: 15px; text-align: center;"></div>
+        </form>
+    </div>
+</div>
+
+<!-- Registration Popup -->
+<div class="popup-overlay" id="registration-popup">
+    <div class="auth-popup">
+        <span class="close-popup" id="close-registration-popup">&times;</span>
+        <h2 class="popup-title">Create Account</h2>
+        <form id="registration-form" method="POST">
+            <div class="form-group">
+                <label for="fullname">Full Name</label>
+                <input type="text" id="fullname" name="fullname" placeholder="Enter your full name" required>
+            </div>
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" id="address" name="address" placeholder="Enter your address" required>
+            </div>
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone" placeholder="Enter your phone number" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Create a strong password" required>
+                <small>Use at least 8 characters with a mix of letters, numbers and symbols</small>
+            </div>
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                <input type="password" id="confirm-password" name="confirm-password" placeholder="Confirm your password" required>
+            </div>
+            <button type="submit" class="form-submit">Register</button>
+            <div class="form-footer">
+                Already have an account? <a href="#" id="show-signin">Sign In</a>
+            </div>
+            <div id="register-message" style="margin-top: 15px; text-align: center;"></div>
+        </form>
+    </div>
+</div>
+
     <script>
         // Language data for English, Hindi, and Odia
         const translations = {
@@ -843,7 +1069,7 @@
                 btn_signin: "ସାଇନ୍ ଇନ୍",
                 btn_register: "ନବୀକରଣ",
                 hero_title: "AI-ଚାଳିତ ଦୃଷ୍ଟିକୋଣ ସହିତ ଆପଣଙ୍କ ଫାର୍ମକୁ ଅପ୍ଟିମାଇଜ୍ କରନ୍ତୁ",
-                hero_description: "ଆଗ୍ରୋଗ୍ରୋ AI ଫସଲ ଉତ୍ପାଦନ ଭବିଷ୍ୟବାଣୀ କରିବା ଏବଂ ସିଞ୍ଚନ, ସାର ପ୍ରୟୋଗ ଏବଂ କୀଟ ନିୟନ୍ତ୍ରଣ ପାଇଁ କାର୍ଯ୍ୟଯୋଗ୍ୟ ପରାମର୍ଶ ଦେବା ପାଇଁ ଐତିହାସିକ ତଥ୍ୟ, ମୌସୁମୀ ପାଟର୍ନ ଏବଂ ମୃତ୍ତିକା ସ୍ୱାସ୍ଥ୍ୟ ମେଟ୍ରିକ୍ସ ବ୍ୟବହାର କରେ |",
+                hero_description: "ଆଗ୍ରୋଗ୍ରୋ AI ଫସଲ ଉତ୍ପାଦନ ଭବିଷ୍ୟବାଣୀ କରିବା ଏବଂ ସିଞ୍ଚନ, ସାର ପ୍ରୟୋଗ ଏବଂ କୀଟ ନିୟନ୍ତ୍ରଣ ପାଇଁ କାର୍ଯ୍ୟଯୋଗ୍ୟ ପରାମର୍ଶ ଦେବା ପାଇଁ ଐତିହାସିକ ତଥ୍ୟ, ମୌସୁମୀ ପାଟର୍ନ ଏବଂ ମୃତ୍ତିକା ସ୍ୱାସ୍ଥ୍ୟ �মେଟ୍ରିକ୍ସ ବ୍ୟବହାର କରେ |",
                 btn_getstarted: "ଆରମ୍ଭ କରନ୍ତୁ",
                 section_overview: "ଫାର୍ମ ସମୀକ୍ଷା",
                 card_weather: "ମୌସୁମୀ ଅବସ୍ଥା",
@@ -854,10 +1080,10 @@
                 soil_description: "ମକା ଚାଷ ପାଇଁ ମୃତ୍ତିକା ଅବସ୍ଥା ଅନୁକୂଳ | ନାଇଟ୍ରୋଜେନ୍ ସ୍ତର ଟିକେ କମ୍ |",
                 card_irrigation: "ସିଞ୍ଚନ ସ୍ଥିତି",
                 label_moisture: "ପର୍ଯ୍ୟାପ୍ତ ଆର୍ଦ୍ରତା",
-                irrigation_description: "ମୌସୁମୀ ପୂର୍ବାନୁମାନ ଉପରେ ଆଧାର କରି ପରବର୍ତ୍ତୀ 48 ଘଣ୍ଟା ମଧ୍ୟରେ ପରାମର୍ଶିତ ସିଞ୍ଚନ |",
+                irrigation_description: "ମୌସୁମୀ ପୂର୍ବାନୁମାନ ଉପରେ ଆଧାର କରି ପରବର୍ତ୍ତୀ 48 ଘଣ୍ଟା �মଧ୍ୟରେ ପରାମର୍ଶିତ ସିଞ୍ଚନ |",
                 section_predictions: "ଫସଲ ଉତ୍ପାଦନ ଭବିଷ୍ୟବାଣୀ",
                 card_corn: "ମକା ଉତ୍ପାଦନ ପୂର୍ବାନୁମାନ",
-                card_soybean: "ସୋୟାବିନ୍ ଉତ୍ପାଦନ ପୂର୍ବାନୁମାନ",
+                card_soybean: "ସୋୟାବିନ୍ ଉତ୍ପାଦন �পୂର୍ବାନୁମାନ",
                 label_yield: "ଆଶା କରାଯାଉଥିବା ଉତ୍ପାଦନ",
                 label_harvest: "ସର୍ବୋତ୍ତମ ଅମଳ ତାରିଖ",
                 label_confidence: "ଆତ୍ମବିଶ୍ୱାସ ସ୍ତର",
@@ -870,11 +1096,11 @@
                 rec_implementation: "କାର୍ଯ୍ୟକାରିତା:",
                 rec_irrigation_impl: "ଦ daily ନନ୍ଦିନା ପରିବର୍ତ୍ତେ ପ୍ରତ୍ୟେକ 48 ଘଣ୍ଟାରେ 30 ମିନିଟ୍ ଚଲାଇବା ପାଇଁ ସ୍ପ୍ରିଙ୍କଲର୍ଗୁଡିକ ସଜାଡନ୍ତୁ |",
                 rec_zones_title: "ଜୋନ-ବିଶେଷ ଆଡଜଷ୍ଟମେଣ୍ଟ",
-                rec_zones_desc: "ଆପଣଙ୍କ କ୍ଷେତ୍ରର ଉତ୍ତରୀୟ ଅଂଶରେ 20% ଅଧିକ ମୃତ୍ତିକା ଆର୍ଦ୍ରତା ଧାରଣ ଅଛି | ବିଭିନ୍ନ ଜୋନରେ ଜଳ ବ୍ୟବହାର ଅପ୍ଟିମାଇଜ୍ କରିବାକୁ ଭେରିଏବଲ୍ ରେଟ୍ ସିଞ୍ଚନ କାର୍ଯ୍ୟକାରୀ କରନ୍ତୁ |",
+                rec_zones_desc: "ଆପଣଙ୍କ କ୍ଷେତ୍ରର ଉତ୍ତରୀୟ ଅଂଶରେ 20% ଅଧିକ �মୃତ୍ତିକା ଆର୍ଦ୍ରତା ଧାରଣ ଅଛି | ବିଭିନ୍ନ ଜୋନରେ ଜଳ �ব୍ୟବହାର ଅପ୍ଟିମାଇଜ୍ କରିବାକୁ ଭେରିଏବଲ୍ ରେଟ୍ ସିଞ୍ଚନ କାର୍ଯ୍ୟକାରୀ କରନ୍ତୁ |",
                 rec_zones_impl: "ଉତ୍ତରୀୟ ଜୋନରେ ଜଳ ବଣ୍ଟନ 25% କମାନ୍ତୁ ଏବଂ ଦକ୍ଷିଣୀ ଜୋନରେ 10% ବୃଦ୍ଧି କରନ୍ତୁ |",
                 rec_fertilization_title: "ନାଇଟ୍ରୋଜେନ୍ ସପ୍ଲିମେଣ୍ଟେସନ୍",
                 rec_fertilization_desc: "ମୃତ୍ତିକା ପରୀକ୍ଷା ସୂଚାଏ ଯେ ମକା ବ growing ୁଚା ପର୍ଯ୍ୟାୟ ପାଇଁ ନାଇଟ୍ରୋଜେନ୍ ସ୍ତର ସର୍ବୋତ୍ତମଠାରୁ 15% ତଳେ | ନାଇଟ୍ରୋଜେନ୍-ଆଧାରିତ ସାରର 40 lbs/acre ପ୍ରୟୋଗ କରିବାକୁ ପରାମର୍ଶ ଦିଆଯାଏ |",
-                rec_fertilization_impl: "ସର୍ବୋତ୍ତମ ଶୋଷଣ ପାଇଁ ପରବର୍ତ୍ତୀ ସିଞ୍ଚନ ଚକ୍ର ପୂର୍ବରୁ ୟୁରିଆ ସାର ପ୍ରୟୋଗ କରନ୍ତୁ |",
+                rec_fertilization_impl: "ସର୍ବୋତ୍ତମ ଶୋଷଣ ପାଇଁ ପରବର୍ତ୍ତୀ ସିଞ୍ଚନ ଚକ୍ର �পୂର୍ବରୁ ୟୁରିଆ ସାର ପ୍ରୟୋଗ କରନ୍ତୁ |",
                 rec_pest_title: "ପ୍ରତିଷେଧାତ୍ମକ କୀଟ ଉପାୟ",
                 rec_pest_desc: "ମୌସୁମୀ ଅବସ୍ଥା ଏବଂ ଅଞ୍ଚଳଗତ ତଥ୍ୟ ପରବର୍ତ୍ତୀ 2-3 ସପ୍ତାହରେ କର୍ନ ବୋରରର ବ increasing ୁଥିବା ବିପଦ ସୂଚାଏ | ପ୍ରତିଷେଧାତ୍ମକ ଚିକିତ୍ସା ପ୍ରୟୋଗ କରିବାକୁ ପରାମର୍ଶ ଦିଆଯାଏ |",
                 rec_pest_impl: "ବେସିଲସ୍ ଥୁରିଜିଏନ୍ସିସ୍ (Bt) ସ୍ପ୍ରେ ପ୍ରଭାତରେ ପ୍ରୟୋଗ କରନ୍ତୁ ଯେତେବେଳେ ତାପମାତ୍ରା 85°F ଠାରୁ କମ୍ ଥାଏ |",
@@ -890,79 +1116,219 @@
                 footer_cases: "କେସ୍ ଷ୍ଟଡିଜ୍",
                 footer_guide: "କୃଷକ ଗାଇଡ୍",
                 footer_support: "ସମର୍ଥନ କେନ୍ଦ୍ର",
-                footer_connect: "ଆମ ସହିତ ଯୋଗାଯୋଗ କରନ୍ତୁ",
+                footer_connect: "ଆମ ସହିତ ଯୋଗ କରନ୍ତୁ",
                 footer_rights: "ସମସ୍ତ ଅଧିକାର ସଂରକ୍ଷିତ |"
             }
-            };
-    // Language switching functionality
-    document.addEventListener('DOMContentLoaded', function() {
-        const languageDropdown = document.getElementById('language-dropdown');
+        };
+
+        // DOM Elements
         const languageButton = document.querySelector('.language-button');
+        const languageDropdown = document.getElementById('language-dropdown');
         const currentLanguage = document.getElementById('current-language');
-        const languageOptions = document.querySelectorAll('.language-option');
-        
-        // Toggle dropdown visibility
-        languageButton.addEventListener('click', function() {
+        const signinBtn = document.getElementById('signin-btn');
+        const registerBtn = document.getElementById('register-btn');
+        const signinPopup = document.getElementById('signin-popup');
+        const registrationPopup = document.getElementById('registration-popup');
+        const closeSigninPopup = document.getElementById('close-signin-popup');
+        const closeRegistrationPopup = document.getElementById('close-registration-popup');
+        const showRegister = document.getElementById('show-register');
+        const showSignin = document.getElementById('show-signin');
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        // Toggle language dropdown
+        languageButton.addEventListener('click', () => {
             languageDropdown.classList.toggle('show');
         });
-        
+
         // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
-            if (!event.target.closest('.language-selector')) {
+        document.addEventListener('click', (e) => {
+            if (!languageButton.contains(e.target) && !languageDropdown.contains(e.target)) {
                 languageDropdown.classList.remove('show');
             }
         });
-        
-        // Handle language selection
-        languageOptions.forEach(option => {
-            option.addEventListener('click', function(e) {
+
+        // Language selection
+        document.querySelectorAll('.language-option').forEach(option => {
+            option.addEventListener('click', (e) => {
                 e.preventDefault();
-                const lang = this.getAttribute('data-lang');
-                
-                // Update current language display
-                currentLanguage.textContent = this.querySelector('span').textContent;
-                
-                // Update active option
-                languageOptions.forEach(opt => opt.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Change language
+                const lang = option.getAttribute('data-lang');
                 changeLanguage(lang);
-                
-                // Close dropdown
                 languageDropdown.classList.remove('show');
-            });
-        });
-        
-        // Tab functionality
-        const tabs = document.querySelectorAll('.tab');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function() {
-                const tabId = this.getAttribute('data-tab');
                 
-                // Update active tab
-                tabs.forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                
-                // Show corresponding content
-                document.querySelectorAll('.tab-content').forEach(content => {
-                    content.classList.remove('active');
+                // Update active language indicator
+                document.querySelectorAll('.language-option').forEach(opt => {
+                    opt.classList.remove('active');
                 });
-                document.getElementById(tabId).classList.add('active');
+                option.classList.add('active');
             });
         });
-        
-        // Function to change language
+
+        // Change page language
         function changeLanguage(lang) {
-            const elements = document.querySelectorAll('[data-translate]');
-            elements.forEach(element => {
+            // Update current language text
+            currentLanguage.textContent = document.querySelector(`.language-option[data-lang="${lang}"] span`).textContent;
+            
+            // Update all translatable elements
+            document.querySelectorAll('[data-translate]').forEach(element => {
                 const key = element.getAttribute('data-translate');
                 if (translations[lang][key]) {
                     element.textContent = translations[lang][key];
                 }
             });
         }
+
+        // Tab switching
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Update active tab
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Show corresponding content
+                tabContents.forEach(content => {
+                    content.classList.remove('active');
+                    if (content.id === tabId) {
+                        content.classList.add('active');
+                    }
+                });
+            });
+        });
+
+        // Auth popup functionality
+        signinBtn.addEventListener('click', () => {
+            signinPopup.classList.add('active');
+        });
+
+        registerBtn.addEventListener('click', () => {
+            registrationPopup.classList.add('active');
+        });
+
+        closeSigninPopup.addEventListener('click', () => {
+            signinPopup.classList.remove('active');
+        });
+
+        closeRegistrationPopup.addEventListener('click', () => {
+            registrationPopup.classList.remove('active');
+        });
+
+        showRegister.addEventListener('click', (e) => {
+            e.preventDefault();
+            signinPopup.classList.remove('active');
+            registrationPopup.classList.add('active');
+        });
+
+        showSignin.addEventListener('click', (e) => {
+            e.preventDefault();
+            registrationPopup.classList.remove('active');
+            signinPopup.classList.add('active');
+        });
+
+        // Close popups when clicking outside
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('popup-overlay')) {
+                signinPopup.classList.remove('active');
+                registrationPopup.classList.remove('active');
+            }
+        });
+
+       // Form submissions
+document.getElementById('signin-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const messageDiv = document.getElementById('signin-message');
+    
+    fetch('login.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageDiv.style.color = 'green';
+            messageDiv.innerHTML = data.message;
+            
+            // Redirect after successful login
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            messageDiv.style.color = 'red';
+            messageDiv.innerHTML = data.message;
+        }
+    })
+    .catch(error => {
+        messageDiv.style.color = 'red';
+        messageDiv.innerHTML = 'An error occurred. Please try again.';
     });
-</script>
+});
+
+document.getElementById('registration-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const messageDiv = document.getElementById('register-message');
+    
+    // Check if passwords match
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+    
+    if (password !== confirmPassword) {
+        messageDiv.style.color = 'red';
+        messageDiv.innerHTML = 'Passwords do not match.';
+        return;
+    }
+    
+    fetch('register.php', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageDiv.style.color = 'green';
+            messageDiv.innerHTML = data.message;
+            
+            // Clear form after successful registration
+            document.getElementById('registration-form').reset();
+            
+            // Optionally switch to login form after successful registration
+            setTimeout(() => {
+                registrationPopup.classList.remove('active');
+                signinPopup.classList.add('active');
+            }, 2000);
+        } else {
+            messageDiv.style.color = 'red';
+            messageDiv.innerHTML = data.message;
+        }
+    })
+    .catch(error => {
+        messageDiv.style.color = 'red';
+        messageDiv.innerHTML = 'An error occurred. Please try again.';
+    });
+    // Check if user is logged in
+function checkLoginStatus() {
+    fetch('check_login.php')
+    .then(response => response.json())
+    .then(data => {
+        if (data.loggedin) {
+            document.getElementById('user-status').style.display = 'block';
+            document.getElementById('user-name').textContent = 'Welcome, ' + data.fullname;
+            document.querySelector('.auth-buttons').style.display = 'none';
+        } else {
+            document.getElementById('user-status').style.display = 'none';
+            document.querySelector('.auth-buttons').style.display = 'flex';
+        }
+    });
+}
+
+// Call this function when page loads
+window.addEventListener('load', checkLoginStatus);
+});
+
+    </script>
 </body>
 </html>
