@@ -1234,18 +1234,25 @@
             }
         });
 
-       // Form submissions
+// Form submissions
 document.getElementById('signin-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
     const formData = new FormData(this);
     const messageDiv = document.getElementById('signin-message');
+    messageDiv.innerHTML = 'Processing...';
+    messageDiv.style.color = 'blue';
     
     fetch('login.php', {
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             messageDiv.style.color = 'green';
@@ -1263,6 +1270,7 @@ document.getElementById('signin-form').addEventListener('submit', function(e) {
     .catch(error => {
         messageDiv.style.color = 'red';
         messageDiv.innerHTML = 'An error occurred. Please try again.';
+        console.error('Error:', error);
     });
 });
 
@@ -1271,6 +1279,8 @@ document.getElementById('registration-form').addEventListener('submit', function
     
     const formData = new FormData(this);
     const messageDiv = document.getElementById('register-message');
+    messageDiv.innerHTML = 'Processing...';
+    messageDiv.style.color = 'blue';
     
     // Check if passwords match
     const password = document.getElementById('password').value;
@@ -1286,7 +1296,12 @@ document.getElementById('registration-form').addEventListener('submit', function
         method: 'POST',
         body: formData
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
             messageDiv.style.color = 'green';
@@ -1308,8 +1323,11 @@ document.getElementById('registration-form').addEventListener('submit', function
     .catch(error => {
         messageDiv.style.color = 'red';
         messageDiv.innerHTML = 'An error occurred. Please try again.';
+        console.error('Error:', error);
     });
-    // Check if user is logged in
+});
+
+// Check if user is logged in
 function checkLoginStatus() {
     fetch('check_login.php')
     .then(response => response.json())
@@ -1322,11 +1340,17 @@ function checkLoginStatus() {
             document.getElementById('user-status').style.display = 'none';
             document.querySelector('.auth-buttons').style.display = 'flex';
         }
+    })
+    .catch(error => {
+        console.error('Error checking login status:', error);
     });
 }
 
 // Call this function when page loads
 window.addEventListener('load', checkLoginStatus);
+// Get Started button functionality
+document.getElementById('get-started-btn').addEventListener('click', () => {
+    registrationPopup.classList.add('active');
 });
 
     </script>

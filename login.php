@@ -1,4 +1,11 @@
 <?php
+// Enable error reporting
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// Start session
+session_start();
+
 include 'db_connect.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -11,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
     
-    // Check if user exists
+    // Check if user exists in the 'users' table
     $query = "SELECT id, fullname, password FROM users WHERE phone = ? AND is_active = 1";
     $stmt = $conn->prepare($query);
     $stmt->bind_param("s", $phone);
@@ -31,8 +38,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $update_stmt->execute();
             $update_stmt->close();
             
-            // Start session and set session variables
-            session_start();
+            // Set session variables
             $_SESSION['user_id'] = $id;
             $_SESSION['fullname'] = $fullname;
             $_SESSION['phone'] = $phone;
